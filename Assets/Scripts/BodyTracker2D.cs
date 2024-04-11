@@ -14,7 +14,11 @@ public class BodyTracker2D : MonoBehaviour
     [SerializeField]
     private Camera _camera;
 
+    [SerializeField]
+    private Material _lineMaterial;
+
     private Dictionary<int, GameObject> _jointObjs = new Dictionary<int, GameObject>();
+    private Dictionary<int, LineRenderer> _jointLines = new Dictionary<int, LineRenderer>();
 
     private void Awake()
     {
@@ -31,6 +35,7 @@ public class BodyTracker2D : MonoBehaviour
         }
 
         UpdateJoints(joints);
+        DrawLines(joints);
     }
 
     private void UpdateJoints(NativeArray<XRHumanBodyPose2DJoint> joints)
@@ -54,6 +59,32 @@ public class BodyTracker2D : MonoBehaviour
             else
             {
                 obj.SetActive(false);
+            }
+        }
+    }
+
+    private void DrawLines(NativeArray<XRHumanBodyPose2DJoint> joints)
+    {
+        foreach (var joint in joints)
+        {
+            if (!_jointLines.ContainsKey(joint.index))
+            {
+                GameObject lineObj = new GameObject("LineRenderer");
+                lineObj.transform.SetParent(transform);
+                LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
+                lineRenderer.startWidth = 0.02f;
+                lineRenderer.endWidth = 0.02f;
+                lineRenderer.material = _lineMaterial;
+                lineRenderer.positionCount = 2;
+                _jointLines.Add(joint.index, lineRenderer);
+            }
+
+            int parentIndex = joint.parentIndex;
+            if (parentIndex >= 0 && _jointObjs.ContainsKey(parentIndex))
+            {
+                LineRenderer lineRenderer = _jointLines[joint.index];
+                lineRenderer.SetPosition(0, _jointObjs[parentIndex].transform.position);
+                lineRenderer.SetPosition(1, _jointObjs[joint.index].transform.position);
             }
         }
     }
