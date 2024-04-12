@@ -4,8 +4,6 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using UnityEngine.UI;
-using System;
 
 public class BodyTracker3D : MonoBehaviour
 {
@@ -110,8 +108,13 @@ public class BodyTracker3D : MonoBehaviour
 
     [SerializeField]
     GameObject jointPrefab;
+    [SerializeField]
+    GameObject linePrefab;
+    [SerializeField]
+    Material lineMat;
 
-    Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
+    private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
+    private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
 
     private void Awake()
     {
@@ -128,34 +131,84 @@ public class BodyTracker3D : MonoBehaviour
         arHumanManager.humanBodiesChanged -= OnHumanBodyChanged;
     }
 
+    // Body Tracking 인식 시 실행되는 이벤트 함수
     private void OnHumanBodyChanged(ARHumanBodiesChangedEventArgs eventArgs)
     {
         foreach (ARHumanBody humanBody in eventArgs.updated)
-        { 
-            NativeArray < XRHumanBodyJoint > joints = humanBody.joints;
+        {
+            NativeArray<XRHumanBodyJoint> joints = humanBody.joints;
 
             foreach (XRHumanBodyJoint joint in joints)
             {
-                GameObject obj;
-                if (!jointObjs.TryGetValue(joint.index, out obj))
+                // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.
+                if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
                 {
-                    obj = Instantiate(jointPrefab);
-                    jointObjs.Add(joint.index, obj);
-                }
+                    GameObject obj;
+                    if (!jointObjs.TryGetValue(joint.index, out obj))
+                    {
+                        obj = Instantiate(jointPrefab);
+                        jointObjs.Add(joint.index, obj);
+                    }
 
-                if (joint.tracked)
-                {
-                    obj.transform.parent = humanBody.transform;
-                    // estimatedHeightScaleFactor = 기본 body height가 정의되어 있는데, 키는 상대적이라 키를 예측해서 ScaleFactor를 저장한 값.
-                    obj.transform.localPosition = joint.anchorPose.position * humanBody.estimatedHeightScaleFactor;
-                    obj.transform.localRotation = joint.anchorPose.rotation;
-                    obj.SetActive(true);
-                }
-                else
-                {
-                    obj.SetActive(false);
+                    if (joint.tracked)
+                    {
+                        obj.transform.parent = humanBody.transform;
+                        // estimatedHeightScaleFactor = 기본 body height가 정의되어 있는데, 키는 상대적이라 키를 예측해서 ScaleFactor를 저장한 값.
+                        obj.transform.localPosition = joint.anchorPose.position * humanBody.estimatedHeightScaleFactor;
+                        obj.transform.localRotation = joint.anchorPose.rotation;
+                        obj.SetActive(true);
+
+                        if (jointObjs.TryGetValue(joint.parentIndex, out GameObject parentObj))
+                        {
+                            DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
+                        }
+                    }
+                    else
+                    {
+                        obj.SetActive(false);
+                        DestroyLine(joint.index);
+                    }
                 }
             }
+        }
+    }
+
+    private void DrawLineBetweenJoints(Vector3 start, Vector3 end, int jointIndex)
+    {
+        GameObject lineObj;
+        LineRenderer lineRenderer;
+
+        if (!lineObjs.TryGetValue(jointIndex, out lineObj))
+        {
+            lineObj = new GameObject("Line");
+            lineObj.transform.parent = transform;
+
+            // LineRenderer 컴포넌트 추가
+            lineRenderer = lineObj.AddComponent<LineRenderer>();
+            lineRenderer.material = lineMat;
+            lineRenderer.startWidth = 0.01f;
+            lineRenderer.endWidth = 0.01f;
+
+            lineObjs.Add(jointIndex, lineObj);
+        }
+        else
+        {
+            lineRenderer = lineObj.GetComponent<LineRenderer>();
+        }
+
+        // 라인의 시작점과 끝점 설정
+        lineRenderer.SetPositions(new Vector3[] { start, end });
+
+        // 라인을 활성화합니다.
+        lineObj.SetActive(true);
+    }
+
+    private void DestroyLine(int jointIndex)
+    {
+        GameObject lineObj;
+        if (lineObjs.TryGetValue(jointIndex, out lineObj))
+        {
+            lineObj.SetActive(false);
         }
     }
 }
