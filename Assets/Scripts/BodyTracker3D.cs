@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -104,14 +105,20 @@ public class BodyTracker3D : MonoBehaviour
         RightHandThumbEnd = 90, // parent: RightHandThumb2 [89]
     }
 
-    ARHumanBodyManager arHumanManager;
+    private ARHumanBodyManager arHumanManager;
+    private AngleCalculator angleCalculator;
 
     [SerializeField]
-    GameObject jointPrefab;
+    Text text;
+
     [SerializeField]
-    GameObject linePrefab;
+    private GameObject jointPrefab;
     [SerializeField]
-    Material lineMat;
+    private Material lineMat;
+
+    private Transform leftShoulder;
+    private Transform rightShoulder;
+    private Transform spine;
 
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
@@ -119,6 +126,7 @@ public class BodyTracker3D : MonoBehaviour
     private void Awake()
     {
         arHumanManager = GetComponent<ARHumanBodyManager>();
+        angleCalculator = GetComponent<AngleCalculator>();
     }
 
     private void OnEnable()
@@ -147,6 +155,23 @@ public class BodyTracker3D : MonoBehaviour
                     if (!jointObjs.TryGetValue(joint.index, out obj))
                     {
                         obj = Instantiate(jointPrefab);
+
+                        switch (joint.index)
+                        {
+                            case 12:
+                                spine = obj.transform;
+                                obj.GetComponent<Renderer>().material.color = Color.red;
+                                break;
+                            case 20:
+                                leftShoulder = obj.transform;
+                                obj.GetComponent<Renderer>().material.color = Color.red;
+                                break;
+                            case 64:
+                                rightShoulder = obj.transform;
+                                obj.GetComponent<Renderer>().material.color = Color.red;
+                                break;
+                        } 
+
                         jointObjs.Add(joint.index, obj);
                     }
 
@@ -158,10 +183,20 @@ public class BodyTracker3D : MonoBehaviour
                         obj.transform.localRotation = joint.anchorPose.rotation;
                         obj.SetActive(true);
 
-                        if (jointObjs.TryGetValue(joint.parentIndex, out GameObject parentObj))
-                        {
-                            DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
-                        }
+                        //if (jointObjs.TryGetValue(joint.parentIndex, out GameObject parentObj))
+                        //{
+                        //    DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
+                        //}
+
+                        float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
+                        float absErrorAngle = angleCalculator.ErrorAngleCalculate(angle);
+
+                        text.text = angle.ToString();
+
+                        //if(absErrorAngle >= 5f)
+                        //{
+                        //    text.text = absErrorAngle.ToString();
+                        //}
                     }
                     else
                     {

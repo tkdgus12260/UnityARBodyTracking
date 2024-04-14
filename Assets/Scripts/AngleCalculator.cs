@@ -8,18 +8,26 @@ public class AngleCalculator : MonoBehaviour
     public Transform obj2;
     public Transform obj3;
 
-    private void Update()
+    //private void Update()
+    //{
+    //    Debug.Log(ErrorAngleCalculate(PullUpCalculateAngle(obj2, obj3, obj1)));
+    //}
+
+    public float ErrorAngleCalculate(float angle)
     {
-        CalculateAngle();
+        float absErrorAngle = Mathf.Abs(90f - angle);
+
+        return absErrorAngle;
     }
 
-    private void CalculateAngle()
+    public float PullUpCalculateAngle(Transform leftShoulder, Transform rightShoulder, Transform spine)
     {
-        Vector3 centerPoint = (obj2.position + obj3.position) / 2; // obj2와 obj3의 중심점 계산
-        Vector3 obj1Direction = obj1.position - centerPoint; // obj1에서 중심점을 향하는 벡터 계산
-        Vector3 obj2Direction = obj2.position - centerPoint; // obj2에서 중심점을 향하는 벡터 계산
+        Vector3 centerPoint = (leftShoulder.position + rightShoulder.position) / 2;
+        Vector3 spineToCenter = spine.position - centerPoint;
+        Vector3 leftShoulderToCenter = leftShoulder.position - centerPoint;
 
-        float angle = Vector3.Angle(obj1Direction, obj2Direction); // obj1과 obj2 방향 사이의 각도 계산
-        Debug.Log("KSH : " + angle);
+        float angle = Vector3.Angle(spineToCenter, leftShoulderToCenter);
+
+        return angle;
     }
 }
