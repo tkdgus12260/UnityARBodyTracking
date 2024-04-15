@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class AngleCalculator : MonoBehaviour
 {
-    public Transform obj1;
-    public Transform obj2;
-    public Transform obj3;
+    //public Transform obj1;
+    //public Transform obj2;
+    //public Transform obj3;
 
     //private void Update()
     //{

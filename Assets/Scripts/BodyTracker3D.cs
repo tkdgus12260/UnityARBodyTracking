@@ -162,11 +162,11 @@ public class BodyTracker3D : MonoBehaviour
                                 spine = obj.transform;
                                 obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
-                            case 20:
+                            case 19:
                                 leftShoulder = obj.transform;
                                 obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
-                            case 64:
+                            case 63:
                                 rightShoulder = obj.transform;
                                 obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
@@ -183,20 +183,23 @@ public class BodyTracker3D : MonoBehaviour
                         obj.transform.localRotation = joint.anchorPose.rotation;
                         obj.SetActive(true);
 
-                        //if (jointObjs.TryGetValue(joint.parentIndex, out GameObject parentObj))
-                        //{
-                        //    DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
-                        //}
+                        if (jointObjs.TryGetValue(joint.parentIndex, out GameObject parentObj))
+                        {
+                            DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
+                        }
 
                         float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
                         float absErrorAngle = angleCalculator.ErrorAngleCalculate(angle);
 
                         text.text = angle.ToString();
 
-                        //if(absErrorAngle >= 5f)
-                        //{
-                        //    text.text = absErrorAngle.ToString();
-                        //}
+                        // 옳지 못한 자세 비율 +-3도
+                        if(absErrorAngle >= 3f)
+                        {
+                            Camera.main.backgroundColor = new Color(1f, 0f, 0f, 0.5f);
+                        }
+                        else
+                            Camera.main.backgroundColor = new Color(0f, 0f, 0f, 1f);
                     }
                     else
                     {
@@ -218,7 +221,6 @@ public class BodyTracker3D : MonoBehaviour
             lineObj = new GameObject("Line");
             lineObj.transform.parent = transform;
 
-            // LineRenderer 컴포넌트 추가
             lineRenderer = lineObj.AddComponent<LineRenderer>();
             lineRenderer.material = lineMat;
             lineRenderer.startWidth = 0.01f;
@@ -231,10 +233,8 @@ public class BodyTracker3D : MonoBehaviour
             lineRenderer = lineObj.GetComponent<LineRenderer>();
         }
 
-        // 라인의 시작점과 끝점 설정
         lineRenderer.SetPositions(new Vector3[] { start, end });
 
-        // 라인을 활성화합니다.
         lineObj.SetActive(true);
     }
 
