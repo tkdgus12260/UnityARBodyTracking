@@ -149,7 +149,7 @@ public class BodyTracker3D : MonoBehaviour
             foreach (XRHumanBodyJoint joint in joints)
             {
                 // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.
-                if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
+                //if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
                 {
                     GameObject obj;
                     if (!jointObjs.TryGetValue(joint.index, out obj))
@@ -196,10 +196,8 @@ public class BodyTracker3D : MonoBehaviour
                         // 옳지 못한 자세 비율 +-3도
                         if(absErrorAngle >= 3f)
                         {
-                            Camera.main.backgroundColor = new Color(1f, 0f, 0f, 0.5f);
+
                         }
-                        else
-                            Camera.main.backgroundColor = new Color(0f, 0f, 0f, 1f);
                     }
                     else
                     {
