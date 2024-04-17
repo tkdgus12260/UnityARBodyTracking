@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -107,18 +108,28 @@ public class BodyTracker3D : MonoBehaviour
 
     private ARHumanBodyManager arHumanManager;
     private AngleCalculator angleCalculator;
+    private PlaneFinder planeFinder;
+
+    private ARPlane arPlane;
 
     [SerializeField]
     Text text;
 
     [SerializeField]
+    Text textPlane;
+
+    [SerializeField]
     private GameObject jointPrefab;
     [SerializeField]
     private Material lineMat;
+    [SerializeField]
+    private Material planeMaterial;
 
     private Transform leftShoulder;
     private Transform rightShoulder;
     private Transform spine;
+    [HideInInspector]
+    public Transform rightFoot;
 
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
@@ -127,6 +138,7 @@ public class BodyTracker3D : MonoBehaviour
     {
         arHumanManager = GetComponent<ARHumanBodyManager>();
         angleCalculator = GetComponent<AngleCalculator>();
+        planeFinder = GetComponent<PlaneFinder>();
     }
 
     private void OnEnable()
@@ -149,7 +161,7 @@ public class BodyTracker3D : MonoBehaviour
             foreach (XRHumanBodyJoint joint in joints)
             {
                 // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.
-                //if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
+                if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
                 {
                     GameObject obj;
                     if (!jointObjs.TryGetValue(joint.index, out obj))
@@ -158,6 +170,9 @@ public class BodyTracker3D : MonoBehaviour
 
                         switch (joint.index)
                         {
+                            case 9:
+                                rightFoot = obj.transform;
+                                break;
                             case 12:
                                 spine = obj.transform;
                                 obj.GetComponent<Renderer>().material.color = Color.red;
@@ -198,6 +213,8 @@ public class BodyTracker3D : MonoBehaviour
                         {
 
                         }
+
+                        BottomPlane();
                     }
                     else
                     {
@@ -242,6 +259,36 @@ public class BodyTracker3D : MonoBehaviour
         if (lineObjs.TryGetValue(jointIndex, out lineObj))
         {
             lineObj.SetActive(false);
+        }
+    }
+
+    public void PullUpRecordingStart()
+    {
+        BottomPlane();
+    }
+
+    private void BottomPlane()
+    {
+        if (rightFoot == null)
+            return;
+
+        float closestDistance = float.MaxValue;
+
+        foreach (ARPlane plane in planeFinder.PlaneObjs)
+        {
+            float distanceToPlane = Mathf.Abs(rightFoot.position.y - plane.transform.position.y);
+            if (distanceToPlane < closestDistance)
+            {
+                closestDistance = distanceToPlane;
+                arPlane = plane;
+            }
+        }
+
+        if(arPlane != null)
+        {
+            arPlane.GetComponent<MeshRenderer>().material = planeMaterial;
+
+            textPlane.text = arPlane.transform.position.y.ToString();
         }
     }
 }
