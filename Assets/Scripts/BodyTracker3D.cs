@@ -305,11 +305,6 @@ public class BodyTracker3D : MonoBehaviour
         }
     }
 
-    public void PullUpRecordingStart()
-    {
-        BottomPlane();
-    }
-
     private void BottomPlane()
     {
         status = true;
