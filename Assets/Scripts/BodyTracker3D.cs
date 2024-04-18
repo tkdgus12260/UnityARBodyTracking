@@ -135,6 +135,11 @@ public class BodyTracker3D : MonoBehaviour
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
 
+    private int count = 0;
+    private bool isPullUpStarted = false;
+    private bool isPullUpEnded = false;
+    private bool status = false;
+
     private void Awake()
     {
         arHumanManager = GetComponent<ARHumanBodyManager>();
@@ -221,7 +226,8 @@ public class BodyTracker3D : MonoBehaviour
 
                         }
 
-                        BottomPlane();
+                        if(!status)
+                            BottomPlane();
                     }
                     else
                     {
@@ -274,13 +280,9 @@ public class BodyTracker3D : MonoBehaviour
         BottomPlane();
     }
 
-    int count = 0;
-    private bool isPullUpStarted = false;
-    private bool isPullUpEnded = false;
-
-
     private void BottomPlane()
     {
+        status = true;
         if (rightFoot == null || rightForearm == null || rightShoulder == null)
             return;
 
@@ -296,8 +298,13 @@ public class BodyTracker3D : MonoBehaviour
             }
         }
 
-        if(arPlane != null)
+        if (arPlane == null)
+            return;
+
+        // 양 발이 바닥에서 떨어졌을 때 시작
+        if (FeetLeaveGround())
         {
+
             // 턱걸이 시작 시
             if (!isPullUpStarted && rightForearm.position.y > rightShoulder.position.y)
             {
@@ -319,5 +326,22 @@ public class BodyTracker3D : MonoBehaviour
 
             textPlane.text = closestDistance.ToString() + "\n 횟수 : " + count;
         }
+        else
+        {
+            count = 0;
+            textPlane.text = closestDistance.ToString() + "\n 횟수 : " + count;
+        }
+
+        status = false;
+    }
+
+    // 양발이 바닥에서 떨어졌는지 감지
+    private bool FeetLeaveGround()
+    {
+        float LeaveDistance = 0.1f;
+        float distanceRightFoot = Mathf.Abs(rightFoot.position.y - arPlane.transform.position.y);
+        float distanceLeftFoot = Mathf.Abs(leftFoot.position.y - arPlane.transform.position.y);
+
+        return distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
     }
 }
