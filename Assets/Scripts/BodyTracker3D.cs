@@ -128,8 +128,9 @@ public class BodyTracker3D : MonoBehaviour
     private Transform leftShoulder;
     private Transform rightShoulder;
     private Transform spine;
-    [HideInInspector]
-    public Transform rightFoot;
+    private Transform rightFoot;
+    private Transform leftFoot;
+    private Transform rightForearm;
 
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
@@ -170,6 +171,9 @@ public class BodyTracker3D : MonoBehaviour
 
                         switch (joint.index)
                         {
+                            case 4:
+                                leftFoot = obj.transform;
+                                break;
                             case 9:
                                 rightFoot = obj.transform;
                                 break;
@@ -184,6 +188,9 @@ public class BodyTracker3D : MonoBehaviour
                             case 63:
                                 rightShoulder = obj.transform;
                                 obj.GetComponent<Renderer>().material.color = Color.red;
+                                break;
+                            case 65:
+                                rightForearm = obj.transform;
                                 break;
                         } 
 
@@ -267,9 +274,14 @@ public class BodyTracker3D : MonoBehaviour
         BottomPlane();
     }
 
+    int count = 0;
+    private bool isPullUpStarted = false;
+    private bool isPullUpEnded = false;
+
+
     private void BottomPlane()
     {
-        if (rightFoot == null)
+        if (rightFoot == null || rightForearm == null || rightShoulder == null)
             return;
 
         float closestDistance = float.MaxValue;
@@ -286,9 +298,26 @@ public class BodyTracker3D : MonoBehaviour
 
         if(arPlane != null)
         {
-            arPlane.GetComponent<MeshRenderer>().material = planeMaterial;
+            // 턱걸이 시작 시
+            if (!isPullUpStarted && rightForearm.position.y > rightShoulder.position.y)
+            {
+                isPullUpStarted = true;
+            }
+            // 턱걸이 종료 시
+            else if (isPullUpStarted && rightForearm.position.y < rightShoulder.position.y)
+            {
+                isPullUpEnded = true;
+            }
 
-            textPlane.text = arPlane.transform.position.y.ToString();
+            // 턱걸이가 시작되고 종료될 때 count를 증가시킴
+            if (isPullUpStarted && isPullUpEnded)
+            {
+                count++;
+                isPullUpStarted = false; // 초기화
+                isPullUpEnded = false; // 초기화
+            }
+
+            textPlane.text = closestDistance.ToString() + "\n 횟수 : " + count;
         }
     }
 }
