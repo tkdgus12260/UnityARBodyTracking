@@ -143,6 +143,7 @@ public class BodyTracker3D : MonoBehaviour
     private bool isPullUpEnded = false;
     private bool status = false;
     private bool reStart = false;
+    private bool isGround = false;
 
     // 뒤틀림 및 뒤틀린 각도
     private bool isRightDistortion = false;
@@ -160,6 +161,11 @@ public class BodyTracker3D : MonoBehaviour
     private void Update()
     {
         text0.text = "reStart : " + reStart + " Right : " + isRightDistortion + "  " + rightDistortion + " Left : " + isLeftDistortion + "  " + leftDistortion;
+
+        if (rightFoot != null && leftFoot != null && arPlane != null)
+        {
+            FeetLeaveGround();
+        }
     }
 
     private void OnEnable()
@@ -320,13 +326,22 @@ public class BodyTracker3D : MonoBehaviour
                 closestDistance = distanceToPlane;
                 arPlane = plane;
             }
+            else
+            {
+                plane.GetComponent<Renderer>().material = null;
+            }
         }
 
         if (arPlane == null)
             return;
 
+        if (arPlane != null)
+        {
+            arPlane.GetComponent<Renderer>().material = planeMaterial;
+        }
+
         // 양 발이 바닥에서 떨어졌을 때 시작
-        if (FeetLeaveGround())
+        if (isGround)
         {
             if (!reStart)
                 reStart = true;
@@ -353,7 +368,7 @@ public class BodyTracker3D : MonoBehaviour
             text2.text = "횟수 : " + count;
         }
         // 턱걸이가 종료된 부분 뒤틀린 방향 및 각도 출력
-        else if(!FeetLeaveGround() && reStart)
+        else if(!isGround && reStart)
         {
             reStart = false;
             string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
@@ -362,11 +377,13 @@ public class BodyTracker3D : MonoBehaviour
             {
                 errorMessage += "\n오른쪽으로 " + rightDistortion + "도 만큼 기울었습니다.";
                 isRightDistortion = false;
+                rightDistortion = 0f;
             }
             if (isLeftDistortion)
             {
                 errorMessage += "\n왼쪽으로 " + leftDistortion + "도 만큼 기울었습니다.";
                 isLeftDistortion = false;
+                leftDistortion = 0f;
             }
 
             textPlane.text = errorMessage;
@@ -377,7 +394,7 @@ public class BodyTracker3D : MonoBehaviour
     }
 
     // 양발이 바닥에서 떨어졌는지 감지
-    private bool FeetLeaveGround()
+    private void FeetLeaveGround()
     {
         float LeaveDistance = 0.3f;
         float distanceRightFoot = Mathf.Abs(rightFoot.position.y - arPlane.transform.position.y);
@@ -387,8 +404,6 @@ public class BodyTracker3D : MonoBehaviour
 
         text.text = "오른발 : " + distanceRightFoot + "  왼발 : " + distanceLeftFoot + " 상태 : " + value;
 
-
-        return value;
-        //return true;
+        isGround = value;
     }
 }
