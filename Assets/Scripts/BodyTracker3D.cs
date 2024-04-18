@@ -113,8 +113,11 @@ public class BodyTracker3D : MonoBehaviour
     private ARPlane arPlane;
 
     [SerializeField]
+    Text text0;
+    [SerializeField]
     Text text;
-
+    [SerializeField]
+    Text text2;
     [SerializeField]
     Text textPlane;
 
@@ -139,12 +142,24 @@ public class BodyTracker3D : MonoBehaviour
     private bool isPullUpStarted = false;
     private bool isPullUpEnded = false;
     private bool status = false;
+    private bool reStart = false;
+
+    // 뒤틀림 및 뒤틀린 각도
+    private bool isRightDistortion = false;
+    private bool isLeftDistortion = false;
+    private float rightDistortion = 0f;
+    private float leftDistortion = 0f;
 
     private void Awake()
     {
         arHumanManager = GetComponent<ARHumanBodyManager>();
         angleCalculator = GetComponent<AngleCalculator>();
         planeFinder = GetComponent<PlaneFinder>();
+    }
+
+    private void Update()
+    {
+        text0.text = "reStart : " + reStart + " Right : " + isRightDistortion + "  " + rightDistortion + " Left : " + isLeftDistortion + "  " + leftDistortion;
     }
 
     private void OnEnable()
@@ -215,15 +230,24 @@ public class BodyTracker3D : MonoBehaviour
                             DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
                         }
 
-                        float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
-                        float absErrorAngle = angleCalculator.ErrorAngleCalculate(angle);
-
-                        text.text = angle.ToString();
-
-                        // 옳지 못한 자세 비율 +-3도
-                        if(absErrorAngle >= 3f)
+                        if (reStart)
                         {
+                            float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
+                            float errorAngle = angleCalculator.ErrorAngleCalculate(angle);
+                            float absErrorAngle = Mathf.Abs(errorAngle);
 
+                            // 옳지 못한 자세 비율 양수
+                            if (absErrorAngle >= 3f && errorAngle > 0 && !isRightDistortion)
+                            {
+                                isRightDistortion = true;
+                                rightDistortion = absErrorAngle;
+                            }
+                            // 옳지 못한 자세 비율 음수
+                            else if (absErrorAngle >= 3f && errorAngle < 0 && !isLeftDistortion)
+                            {
+                                isLeftDistortion = true;
+                                leftDistortion = absErrorAngle;
+                            }
                         }
 
                         if(!status)
@@ -304,6 +328,8 @@ public class BodyTracker3D : MonoBehaviour
         // 양 발이 바닥에서 떨어졌을 때 시작
         if (FeetLeaveGround())
         {
+            if (!reStart)
+                reStart = true;
 
             // 턱걸이 시작 시
             if (!isPullUpStarted && rightForearm.position.y > rightShoulder.position.y)
@@ -324,12 +350,27 @@ public class BodyTracker3D : MonoBehaviour
                 isPullUpEnded = false; // 초기화
             }
 
-            textPlane.text = closestDistance.ToString() + "\n 횟수 : " + count;
+            text2.text = "횟수 : " + count;
         }
-        else
+        // 턱걸이가 종료된 부분 뒤틀린 방향 및 각도 출력
+        else if(!FeetLeaveGround() && reStart)
         {
+            reStart = false;
+            string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
+
+            if (isRightDistortion)
+            {
+                errorMessage += "\n오른쪽으로 " + rightDistortion + "도 만큼 기울었습니다.";
+                isRightDistortion = false;
+            }
+            if (isLeftDistortion)
+            {
+                errorMessage += "\n왼쪽으로 " + leftDistortion + "도 만큼 기울었습니다.";
+                isLeftDistortion = false;
+            }
+
+            textPlane.text = errorMessage;
             count = 0;
-            textPlane.text = closestDistance.ToString() + "\n 횟수 : " + count;
         }
 
         status = false;
@@ -338,10 +379,16 @@ public class BodyTracker3D : MonoBehaviour
     // 양발이 바닥에서 떨어졌는지 감지
     private bool FeetLeaveGround()
     {
-        float LeaveDistance = 0.1f;
+        float LeaveDistance = 0.3f;
         float distanceRightFoot = Mathf.Abs(rightFoot.position.y - arPlane.transform.position.y);
         float distanceLeftFoot = Mathf.Abs(leftFoot.position.y - arPlane.transform.position.y);
 
-        return distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
+        bool value = distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
+
+        text.text = "오른발 : " + distanceRightFoot + "  왼발 : " + distanceLeftFoot + " 상태 : " + value;
+
+
+        return value;
+        //return true;
     }
 }
