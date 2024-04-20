@@ -111,6 +111,7 @@ public class BodyTracker3D : MonoBehaviour
     private PlaneFinder planeFinder;
 
     private ARPlane arPlane;
+    //public GameObject arPlane;
 
     [SerializeField]
     Text text0;
@@ -128,12 +129,12 @@ public class BodyTracker3D : MonoBehaviour
     [SerializeField]
     private Material planeMaterial;
 
-    private Transform leftShoulder;
-    private Transform rightShoulder;
-    private Transform spine;
-    private Transform rightFoot;
-    private Transform leftFoot;
-    private Transform rightForearm;
+    public Transform leftShoulder;
+    public Transform rightShoulder;
+    public Transform spine;
+    public Transform rightFoot;
+    public Transform leftFoot;
+    public Transform rightForearm;
 
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
@@ -141,7 +142,7 @@ public class BodyTracker3D : MonoBehaviour
     private int count = 0;
     private bool isPullUpStarted = false;
     private bool isPullUpEnded = false;
-    private bool status = false;
+    //private bool status = false;
     private bool reStart = false;
     private bool isGround = false;
 
@@ -160,11 +161,17 @@ public class BodyTracker3D : MonoBehaviour
 
     private void Update()
     {
-        text0.text = "reStart : " + reStart + " Right : " + isRightDistortion + "  " + rightDistortion + " Left : " + isLeftDistortion + "  " + leftDistortion;
+        text0.text = "풀업 스타트 : " + isPullUpStarted + "|||| 풀업 엔드 : " + isPullUpEnded;
 
         if (rightFoot != null && leftFoot != null && arPlane != null)
         {
             FeetLeaveGround();
+            PullUpCount();
+
+            if (isGround)
+            {
+                PullUpMeasurement();
+            }
         }
     }
 
@@ -236,28 +243,7 @@ public class BodyTracker3D : MonoBehaviour
                             DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
                         }
 
-                        if (reStart)
-                        {
-                            float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
-                            float errorAngle = angleCalculator.ErrorAngleCalculate(angle);
-                            float absErrorAngle = Mathf.Abs(errorAngle);
-
-                            // 옳지 못한 자세 비율 양수
-                            if (absErrorAngle >= 3f && errorAngle > 0 && !isRightDistortion)
-                            {
-                                isRightDistortion = true;
-                                rightDistortion = absErrorAngle;
-                            }
-                            // 옳지 못한 자세 비율 음수
-                            else if (absErrorAngle >= 3f && errorAngle < 0 && !isLeftDistortion)
-                            {
-                                isLeftDistortion = true;
-                                leftDistortion = absErrorAngle;
-                            }
-                        }
-
-                        if(!status)
-                            BottomPlane();
+                        BottomPlane();
                     }
                     else
                     {
@@ -267,6 +253,133 @@ public class BodyTracker3D : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void PullUpMeasurement()
+    {
+        float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
+        float errorAngle = angleCalculator.ErrorAngleCalculate(angle);
+        float absErrorAngle = Mathf.Abs(errorAngle);
+
+        // 옳지 못한 자세 비율 양수
+        if (absErrorAngle >= 3f && errorAngle > 0 && !isRightDistortion)
+        {
+            isRightDistortion = true;
+            rightDistortion = absErrorAngle;
+        }
+        // 옳지 못한 자세 비율 음수
+        else if (absErrorAngle >= 3f && errorAngle < 0 && !isLeftDistortion)
+        {
+            isLeftDistortion = true;
+            leftDistortion = absErrorAngle;
+        }
+    }
+
+    private void BottomPlane()
+    {
+        if (planeFinder.PlaneObjs.Count == 0)
+            return;
+
+        float closestDistance = float.MaxValue;
+
+        foreach (ARPlane plane in planeFinder.PlaneObjs)
+        {
+            float distanceToPlane = Mathf.Abs(rightFoot.position.y - plane.transform.position.y);
+            if (distanceToPlane < closestDistance)
+            {
+                closestDistance = distanceToPlane;
+                arPlane = plane;
+            }
+            else
+            {
+                plane.GetComponent<Renderer>().material = null;
+            }
+        }
+        if (arPlane != null)
+        {
+            arPlane.GetComponent<Renderer>().material = planeMaterial;
+        }
+    }
+
+    private bool canCount = true; // 카운트 가능 여부를 나타내는 변수
+
+    private IEnumerator CountCooldown(float cooldownTime)
+    {
+        canCount = false; // 카운트 불가능 상태로 설정
+
+        yield return new WaitForSeconds(cooldownTime); // 일정 시간 동안 대기
+
+        canCount = true; // 다시 카운트 가능 상태로 설정
+    }
+
+    private void PullUpCount()
+    { 
+        // 양 발이 바닥에서 떨어졌을 때 시작
+        if (isGround)
+        {
+            if (!reStart)
+                reStart = true;
+
+            // 턱걸이 시작 시
+            if (!isPullUpStarted && rightForearm.position.y > rightShoulder.position.y)
+            {
+                isPullUpStarted = true;
+            }
+            // 턱걸이 종료 시
+            else if (isPullUpStarted && rightForearm.position.y < rightShoulder.position.y)
+            {
+                isPullUpEnded = true;
+            }
+
+            // 턱걸이가 시작되고 종료될 때 count를 증가시킴
+            if (isPullUpStarted && isPullUpEnded && canCount)
+            {
+                count++;
+                isPullUpStarted = false;
+                isPullUpEnded = false;
+                StartCoroutine(CountCooldown(1f));
+            }
+            if(!canCount)
+                isPullUpEnded = false;
+
+            text2.text = "횟수 : " + count;
+        }
+        // 턱걸이가 종료된 부분 뒤틀린 방향 및 각도 출력
+        else if(!isGround && reStart)
+        {
+            reStart = false;
+            string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
+
+            if (isRightDistortion)
+            {
+                errorMessage += "\n오른쪽으로 " + rightDistortion + "도 만큼 기울었습니다.";
+                isRightDistortion = false;
+                rightDistortion = 0f;
+            }
+            if (isLeftDistortion)
+            {
+                errorMessage += "\n왼쪽으로 " + leftDistortion + "도 만큼 기울었습니다.";
+                isLeftDistortion = false;
+                leftDistortion = 0f;
+            }
+
+            textPlane.text = errorMessage;
+            count = 0;
+        }
+    }
+
+    // 양발이 바닥에서 떨어졌는지 감지
+    private void FeetLeaveGround()
+    {
+        float LeaveDistance = 0.3f;
+        float distanceRightFoot = Mathf.Abs(rightFoot.position.y - arPlane.transform.position.y);
+        float distanceLeftFoot = Mathf.Abs(leftFoot.position.y - arPlane.transform.position.y);
+
+        bool value = distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
+
+        text.text = "상태 : " + value;
+
+        isGround = value;
     }
 
     private void DrawLineBetweenJoints(Vector3 start, Vector3 end, int jointIndex)
@@ -303,102 +416,5 @@ public class BodyTracker3D : MonoBehaviour
         {
             lineObj.SetActive(false);
         }
-    }
-
-    private void BottomPlane()
-    {
-        status = true;
-        if (rightFoot == null || rightForearm == null || rightShoulder == null)
-            return;
-
-        float closestDistance = float.MaxValue;
-
-        foreach (ARPlane plane in planeFinder.PlaneObjs)
-        {
-            float distanceToPlane = Mathf.Abs(rightFoot.position.y - plane.transform.position.y);
-            if (distanceToPlane < closestDistance)
-            {
-                closestDistance = distanceToPlane;
-                arPlane = plane;
-            }
-            else
-            {
-                plane.GetComponent<Renderer>().material = null;
-            }
-        }
-
-        if (arPlane == null)
-            return;
-
-        if (arPlane != null)
-        {
-            arPlane.GetComponent<Renderer>().material = planeMaterial;
-        }
-
-        // 양 발이 바닥에서 떨어졌을 때 시작
-        if (isGround)
-        {
-            if (!reStart)
-                reStart = true;
-
-            // 턱걸이 시작 시
-            if (!isPullUpStarted && rightForearm.position.y > rightShoulder.position.y)
-            {
-                isPullUpStarted = true;
-            }
-            // 턱걸이 종료 시
-            else if (isPullUpStarted && rightForearm.position.y < rightShoulder.position.y)
-            {
-                isPullUpEnded = true;
-            }
-
-            // 턱걸이가 시작되고 종료될 때 count를 증가시킴
-            if (isPullUpStarted && isPullUpEnded)
-            {
-                count++;
-                isPullUpStarted = false; // 초기화
-                isPullUpEnded = false; // 초기화
-            }
-
-            text2.text = "횟수 : " + count;
-        }
-        // 턱걸이가 종료된 부분 뒤틀린 방향 및 각도 출력
-        else if(!isGround && reStart)
-        {
-            reStart = false;
-            string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
-
-            if (isRightDistortion)
-            {
-                errorMessage += "\n오른쪽으로 " + rightDistortion + "도 만큼 기울었습니다.";
-                isRightDistortion = false;
-                rightDistortion = 0f;
-            }
-            if (isLeftDistortion)
-            {
-                errorMessage += "\n왼쪽으로 " + leftDistortion + "도 만큼 기울었습니다.";
-                isLeftDistortion = false;
-                leftDistortion = 0f;
-            }
-
-            textPlane.text = errorMessage;
-            count = 0;
-        }
-
-        status = false;
-    }
-
-    // 양발이 바닥에서 떨어졌는지 감지
-    private void FeetLeaveGround()
-    {
-        float LeaveDistance = 0.3f;
-        float distanceRightFoot = Mathf.Abs(rightFoot.position.y - arPlane.transform.position.y);
-        float distanceLeftFoot = Mathf.Abs(leftFoot.position.y - arPlane.transform.position.y);
-
-        bool value = distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
-
-        text.text = "오른발 : " + distanceRightFoot + "  왼발 : " + distanceLeftFoot + " 상태 : " + value;
-
-        isGround = value;
     }
 }
