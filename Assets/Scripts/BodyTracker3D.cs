@@ -301,15 +301,16 @@ public class BodyTracker3D : MonoBehaviour
         }
     }
 
-    private bool canCount = true; // 카운트 가능 여부를 나타내는 변수
+    // 카운트 가능 여부를 나타내는 변수
+    private bool canCount = true;
 
     private IEnumerator CountCooldown(float cooldownTime)
     {
-        canCount = false; // 카운트 불가능 상태로 설정
+        canCount = false;
 
-        yield return new WaitForSeconds(cooldownTime); // 일정 시간 동안 대기
+        yield return new WaitForSeconds(cooldownTime);
 
-        canCount = true; // 다시 카운트 가능 상태로 설정
+        canCount = true;
     }
 
     private void PullUpCount()
@@ -339,6 +340,7 @@ public class BodyTracker3D : MonoBehaviour
                 isPullUpEnded = false;
                 StartCoroutine(CountCooldown(1f));
             }
+
             if(!canCount)
                 isPullUpEnded = false;
 
@@ -348,6 +350,8 @@ public class BodyTracker3D : MonoBehaviour
         else if(!isGround && reStart)
         {
             reStart = false;
+            isPullUpStarted = false;
+
             string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
 
             if (isRightDistortion)
