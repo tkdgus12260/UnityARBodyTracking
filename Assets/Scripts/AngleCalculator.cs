@@ -15,7 +15,7 @@ public class AngleCalculator : MonoBehaviour
 
     public float ErrorAngleCalculate(float angle)
     {
-        float absErrorAngle = Mathf.Abs(90f - angle);
+        float absErrorAngle = 90f - angle;
 
         return absErrorAngle;
     }
