@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Text.RegularExpressions;
 using System;
+using System.Threading.Tasks;
 
 public class CountMessageItem : MonoBehaviour
 {
@@ -51,8 +52,15 @@ public class CountMessageItem : MonoBehaviour
         countMessageItemUI.nickNamePanel.GetComponentInChildren<Button>().onClick.AddListener(NickNameInput);
     }
 
-    public void NickNameInput()
+    private void NickNameInput()
     {
+        StartCoroutine(NickNameInputCorutine());
+    }
+
+    private IEnumerator NickNameInputCorutine()
+    {
+        yield return null;
+
         if (inputField == null)
             inputField = countMessageItemUI.nickNamePanel.GetComponentInChildren<TMP_InputField>();
 
@@ -61,6 +69,9 @@ public class CountMessageItem : MonoBehaviour
         if(nickName != string.Empty)
         {
             RankingRegistration(nickName, this.count);
+            yield return new WaitUntil(() => Manager.Instance.s3Manager.Ready);
+
+            Manager.Instance.s3Manager.Ready = false;
             RankingButton.gameObject.SetActive(false);
             countMessageItemUI.nickNamePanel.SetActive(false);
             countMessageItemUI.OnWarningPanel("랭킹 등록이 완료되었습니다. \n메인화면으로 돌아가 확인 할 수 있습니다.");
@@ -86,7 +97,6 @@ public class CountMessageItem : MonoBehaviour
         newData.imageURL = Manager.Instance.s3Manager.ImageURL;
 
         Manager.Instance.s3Manager.UpdateRankingJson(newData);
-
         Manager.Instance.s3Manager.ImageURL = string.Empty;
     }
 

@@ -40,6 +40,8 @@ public class S3Manager : MonoBehaviour
     private IAmazonS3 s3Client;
     private TransferUtility transferUtil;
 
+    public bool Ready = false;
+
     private void Start()
     {
         s3Client = new AmazonS3Client(new CognitoAWSCredentials("ap-northeast-2:04d7b7ad-527e-417c-b876-43ad9dc193df", RegionEndpoint.APNortheast2), RegionEndpoint.APNortheast2);
@@ -67,7 +69,6 @@ public class S3Manager : MonoBehaviour
                 }
             }
         }, NativeGallery.MediaType.Image | NativeGallery.MediaType.Video);
-
     }
 
     // s3 업로드 함수
@@ -92,6 +93,7 @@ public class S3Manager : MonoBehaviour
 
         if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
         {
+            Ready = true;
             Debug.Log($"Successfully uploaded {objectName} to {bucketName}.");
             return;
         }

@@ -135,7 +135,6 @@ public class BodyTracker3D : MonoBehaviour
     private int count = 0;
     private bool isPullUpStarted = false;
     private bool isPullUpEnded = false;
-    //private bool status = false;
     private bool reStart = false;
     private bool isGround = false;
 
@@ -283,14 +282,6 @@ public class BodyTracker3D : MonoBehaviour
                 closestDistance = distanceToPlane;
                 arPlane = plane;
             }
-            else
-            {
-                plane.GetComponent<Renderer>().material = null;
-            }
-        }
-        if (arPlane != null)
-        {
-            arPlane.GetComponent<Renderer>().material = planeMaterial;
         }
     }
 
