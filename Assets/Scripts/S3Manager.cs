@@ -18,6 +18,7 @@ public class RankingData
 {
     public string nickName;
     public int count;
+    public string uuid;
     public string imageURL;
 }
 
@@ -25,7 +26,7 @@ public class S3Manager : MonoBehaviour
 {
     private string folderPath;
     private string _bucketName = "kshs3test";
-    private string _folderName = "UploadTest";
+    private string _folderName = "UserImage";
     private string rankingFileName = "ranking.json";
 
     [HideInInspector]
@@ -45,20 +46,7 @@ public class S3Manager : MonoBehaviour
         transferUtil = new TransferUtility(s3Client);
     }
 
-    private void Update()
-    {
-        //if (Input.GetKeyDown(KeyCode.Q))
-        //{
-        //    RankingData newData = new RankingData();
-        //    newData.nickName = "김상현";
-        //    newData.count = 1;
-        //    newData.imageURL = "https://example.com/image.jpg";
-
-        //    UpdateRankingJson(newData);
-        //}
-    }
-
-    public void RankingPhotoRegistration(string nickName)
+    public void RankingPhotoRegistration(string uuid)
     {
         //사진과 동영상들 중 선택 가능
         NativeGallery.GetMixedMediaFromGallery((media) => {
@@ -73,8 +61,8 @@ public class S3Manager : MonoBehaviour
                 }
                 else
                 {
-                    Task.Run(() => UploadFileAsync(s3Client, _bucketName + "/" + nickName, selectedMedia.Name, selectedMedia.FullName));
-                    ImageURL = $"https://kshs3test.s3.ap-northeast-2.amazonaws.com/{nickName}/" + selectedMedia.Name;
+                    Task.Run(() => UploadFileAsync(s3Client, _bucketName + "/" + _folderName + "/" + uuid, selectedMedia.Name, selectedMedia.FullName));
+                    ImageURL = $"https://kshs3test.s3.ap-northeast-2.amazonaws.com/{_folderName}/{uuid}/" + selectedMedia.Name;
                 }
             }
         }, NativeGallery.MediaType.Image | NativeGallery.MediaType.Video);

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Text.RegularExpressions;
+using System;
 
 public class CountMessageItem : MonoBehaviour
 {
@@ -58,34 +59,38 @@ public class CountMessageItem : MonoBehaviour
 
         if(nickName != string.Empty)
         {
-            if (Regex.IsMatch(nickName, @"^[a-zA-Z0-9]+$"))
-            {
-                RankingRegistration(nickName, this.count);
-                RankingButton.gameObject.SetActive(false);
-                countMessageItemUI.nickNamePanel.SetActive(false);
-            }
-            else
-            {
-                Debug.Log("알파벳과 숫자로만 입력해주세요.");
-            }
+            RankingRegistration(nickName, this.count);
+            RankingButton.gameObject.SetActive(false);
+            countMessageItemUI.nickNamePanel.SetActive(false);
+            countMessageItemUI.OnWarningPanel("랭킹 등록이 완료되었습니다. \n메인화면으로 돌아가 확인 할 수 있습니다.");
         }
         else
         {
-            Debug.Log("닉네임을 입력해주세요.");
+            countMessageItemUI.nickNamePanel.SetActive(false);
+            countMessageItemUI.OnWarningPanel("닉네임을 입력해주세요.");
         }
     }
 
     public void RankingRegistration(string nickName, int count)
     {
-        Manager.Instance.s3Manager.RankingPhotoRegistration(nickName);
+        string uuid = GenerateUUID();
+
+        Manager.Instance.s3Manager.RankingPhotoRegistration(uuid);
 
         RankingData newData = new RankingData();
         newData.nickName = nickName;
         newData.count = count;
+        newData.uuid = uuid;
         newData.imageURL = Manager.Instance.s3Manager.ImageURL;
 
         Manager.Instance.s3Manager.UpdateRankingJson(newData);
 
         Manager.Instance.s3Manager.ImageURL = string.Empty;
+    }
+
+    // uuid 생성 함수
+    private string GenerateUUID()
+    {
+        return Guid.NewGuid().ToString();
     }
 }

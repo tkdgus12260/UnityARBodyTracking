@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class CountMessageItemUI : MonoBehaviour
 {
@@ -10,6 +11,9 @@ public class CountMessageItemUI : MonoBehaviour
     private GameObject messageItemPrefab;
     public GameObject nickNamePanel;
 
+    public GameObject warningPanel;
+    public TextMeshProUGUI text;
+
     //private void Update()
     //{
     //    if (Input.GetKeyDown(KeyCode.K))
@@ -18,7 +22,7 @@ public class CountMessageItemUI : MonoBehaviour
     //    }
     //}
 
-    // 새로운 messageitem 생성 및 업데이트 함수 실행
+    // 새로운 messageitem 생성 및 업데이트 함수
     public void InitializeMessageItem(int count, float rightDistortion, float leftDistortion, bool right, bool left)
     {
         GameObject newMessageItem = Instantiate(messageItemPrefab, scrollViewContent.transform);
@@ -27,11 +31,18 @@ public class CountMessageItemUI : MonoBehaviour
         countMessageItem.UpdateMessage(count, rightDistortion, leftDistortion, right, left);
     }
 
+    // CountMessageItemUI 숨기기
     public void SetXPosition(float value)
     {
         RectTransform rectTransform = GetComponent<RectTransform>();
         Vector3 newPosition = rectTransform.localPosition;
         newPosition.x = value;
         rectTransform.localPosition = newPosition;
+    }
+
+    public void OnWarningPanel(string message)
+    {
+        warningPanel.SetActive(true);
+        text.text = message;
     }
 }
