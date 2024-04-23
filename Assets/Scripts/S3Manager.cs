@@ -47,15 +47,15 @@ public class S3Manager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            RankingData newData = new RankingData();
-            newData.nickName = "김상현";
-            newData.count = 1;
-            newData.imageURL = "https://example.com/image.jpg";
+        //if (Input.GetKeyDown(KeyCode.Q))
+        //{
+        //    RankingData newData = new RankingData();
+        //    newData.nickName = "김상현";
+        //    newData.count = 1;
+        //    newData.imageURL = "https://example.com/image.jpg";
 
-            UpdateRankingJson(newData);
-        }
+        //    UpdateRankingJson(newData);
+        //}
     }
 
     public void RankingPhotoRegistration(string nickName)
@@ -73,7 +73,7 @@ public class S3Manager : MonoBehaviour
                 }
                 else
                 {
-                    UploadFileAsync(s3Client, _bucketName + "/" + nickName, selectedMedia.Name, selectedMedia.FullName);
+                    Task.Run(() => UploadFileAsync(s3Client, _bucketName + "/" + nickName, selectedMedia.Name, selectedMedia.FullName));
                     ImageURL = $"https://kshs3test.s3.ap-northeast-2.amazonaws.com/{nickName}/" + selectedMedia.Name;
                 }
             }

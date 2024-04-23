@@ -154,6 +154,11 @@ public class BodyTracker3D : MonoBehaviour
 
     private void Update()
     {
+        //if (Input.GetKeyDown(KeyCode.W))
+        //{
+        //    countMessageItemUI.InitializeMessageItem(10, rightDistortion, leftDistortion, false, false);
+        //}
+
         if (rightFoot != null && leftFoot != null && arPlane != null)
         {
             FeetLeaveGround();
