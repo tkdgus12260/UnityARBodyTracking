@@ -12,6 +12,7 @@ public class RankingItemUI : MonoBehaviour
 
     private Dictionary<string, GameObject> rankingItemMap = new Dictionary<string, GameObject>();
 
+    // 랭킹 최신화 함수
     public async void OnRankingPanel()
     {
         gameObject.SetActive(true);
@@ -34,6 +35,7 @@ public class RankingItemUI : MonoBehaviour
         }
     }
 
+    // 랭킹 콘텐츠 프리팹 생성 함수
     private void InitializeMessageItem(string nickName, int count, string url, int rank)
     {
         GameObject newRankingItem = Instantiate(rankingItemPrefab, scrollViewContent.transform);

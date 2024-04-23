@@ -4,15 +4,7 @@ using UnityEngine;
 
 public class AngleCalculator : MonoBehaviour
 {
-    //public Transform obj1;
-    //public Transform obj2;
-    //public Transform obj3;
-
-    //private void Update()
-    //{
-    //    Debug.Log(ErrorAngleCalculate(PullUpCalculateAngle(obj2, obj3, obj1)));
-    //}
-
+    // 오차 각도 계산 함수
     public float ErrorAngleCalculate(float angle)
     {
         float absErrorAngle = 90f - angle;
@@ -20,6 +12,7 @@ public class AngleCalculator : MonoBehaviour
         return absErrorAngle;
     }
 
+    // 어깨 기준으로 허리의 각도 계산 함수
     public float PullUpCalculateAngle(Transform leftShoulder, Transform rightShoulder, Transform spine)
     {
         Vector3 centerPoint = (leftShoulder.position + rightShoulder.position) / 2;

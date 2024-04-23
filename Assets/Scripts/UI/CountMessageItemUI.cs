@@ -14,13 +14,6 @@ public class CountMessageItemUI : MonoBehaviour
     public GameObject warningPanel;
     public TextMeshProUGUI text;
 
-    //private void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.K))
-    //    {
-    //        InitializeMessageItem(20, 0f, 0f, false, false);
-    //    }
-    //}
 
     // 새로운 messageitem 생성 및 업데이트 함수
     public void InitializeMessageItem(int count, float rightDistortion, float leftDistortion, bool right, bool left)
@@ -40,6 +33,7 @@ public class CountMessageItemUI : MonoBehaviour
         rectTransform.localPosition = newPosition;
     }
 
+    // 경고 패널 활성화 함수
     public void OnWarningPanel(string message)
     {
         warningPanel.SetActive(true);

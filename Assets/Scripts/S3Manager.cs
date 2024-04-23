@@ -46,6 +46,7 @@ public class S3Manager : MonoBehaviour
         transferUtil = new TransferUtility(s3Client);
     }
 
+    // 랭킹 사진 등록 함수
     public void RankingPhotoRegistration(string uuid)
     {
         //사진과 동영상들 중 선택 가능
@@ -69,7 +70,7 @@ public class S3Manager : MonoBehaviour
 
     }
 
-    // 경로 내 파일 s3에 업로드.
+    // s3 업로드 함수
     public async void UploadFileAsync(
         IAmazonS3 client,
         string bucketName,
@@ -101,6 +102,7 @@ public class S3Manager : MonoBehaviour
         }
     }
 
+    // 랭킹 제이슨파일 업데이트 함수
     public async void UpdateRankingJson(RankingData newData)
     {
         string existingJson = await DownloadFileAsync(s3Client, _bucketName, rankingFileName);
@@ -127,6 +129,7 @@ public class S3Manager : MonoBehaviour
         return await DownloadFileAsync(s3Client, _bucketName, rankingFileName);
     }
 
+    // s3 다운로드 함수
     private async Task<string> DownloadFileAsync(IAmazonS3 client, string bucketName, string objectName)
     {
         var request = new GetObjectRequest
@@ -143,12 +146,13 @@ public class S3Manager : MonoBehaviour
         }
     }
 
+    // s3 업로드된 파일 삭제
     public void DeleteButton()
     {
-        DeleteObjectNonVersionedBucketAsync(s3Client, _bucketName, "sampleUserID/");
+        DeleteObjectNonVersionedBucketAsync(s3Client, _bucketName, "");
     }
 
-    // 파일 삭제
+    // s3 업로드된 파일 삭제
     public async void DeleteObjectNonVersionedBucketAsync(IAmazonS3 client, string bucketName, string keyName)
     {
         try

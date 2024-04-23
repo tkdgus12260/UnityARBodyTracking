@@ -20,6 +20,7 @@ public class CountMessageItem : MonoBehaviour
         countMessageItemUI = GetComponentInParent<CountMessageItemUI>();
     }
 
+    // 턱걸이 결과 메세지 업데이트 함수
     public void UpdateMessage(int count, float rightDistortion, float leftDistortion, bool right, bool left)
     {
         string errorMessage;
@@ -71,6 +72,7 @@ public class CountMessageItem : MonoBehaviour
         }
     }
 
+    // 랭킹 등록 함수
     public void RankingRegistration(string nickName, int count)
     {
         string uuid = GenerateUUID();

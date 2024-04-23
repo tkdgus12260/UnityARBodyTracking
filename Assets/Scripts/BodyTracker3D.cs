@@ -185,7 +185,7 @@ public class BodyTracker3D : MonoBehaviour
 
             foreach (XRHumanBodyJoint joint in joints)
             {
-                // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.
+                // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.(어깨, 허리, 골반, 다리)
                 if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
                 {
                     GameObject obj;
@@ -246,6 +246,7 @@ public class BodyTracker3D : MonoBehaviour
         }
     }
 
+    // 턱걸이 자세 측정 함수
     private void PullUpMeasurement()
     {
         float angle = angleCalculator.PullUpCalculateAngle(leftShoulder, rightShoulder, spine);
@@ -266,6 +267,7 @@ public class BodyTracker3D : MonoBehaviour
         }
     }
 
+    // 바닥 감지 함수
     private void BottomPlane()
     {
         if (planeFinder.PlaneObjs.Count == 0)
@@ -295,6 +297,7 @@ public class BodyTracker3D : MonoBehaviour
     // 카운트 가능 여부를 나타내는 변수
     private bool canCount = true;
 
+    // 턱걸이 카운트 쿨타임 코루틴
     private IEnumerator CountCooldown(float cooldownTime)
     {
         canCount = false;
@@ -304,6 +307,7 @@ public class BodyTracker3D : MonoBehaviour
         canCount = true;
     }
 
+    // 턱걸이 카운트 함수
     private void PullUpCount()
     { 
         // 양 발이 바닥에서 떨어졌을 때 시작
@@ -343,8 +347,8 @@ public class BodyTracker3D : MonoBehaviour
 
             if(countMessageItemUI != null && count > 0)
             {
-                //countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, isRightDistortion, isLeftDistortion);
-                countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, false, false);
+                countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, isRightDistortion, isLeftDistortion);
+                //countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, false, false);
             }
 
             isRightDistortion = false;
