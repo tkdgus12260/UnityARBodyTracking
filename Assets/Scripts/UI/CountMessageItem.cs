@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Text.RegularExpressions;
 
 public class CountMessageItem : MonoBehaviour
 {
@@ -57,9 +58,16 @@ public class CountMessageItem : MonoBehaviour
 
         if(nickName != string.Empty)
         {
-            RankingRegistration(nickName, this.count);
-            RankingButton.gameObject.SetActive(false);
-            countMessageItemUI.nickNamePanel.SetActive(false);
+            if (Regex.IsMatch(nickName, @"^[a-zA-Z0-9]+$"))
+            {
+                RankingRegistration(nickName, this.count);
+                RankingButton.gameObject.SetActive(false);
+                countMessageItemUI.nickNamePanel.SetActive(false);
+            }
+            else
+            {
+                Debug.Log("알파벳과 숫자로만 입력해주세요.");
+            }
         }
         else
         {
