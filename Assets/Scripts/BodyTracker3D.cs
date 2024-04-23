@@ -109,18 +109,11 @@ public class BodyTracker3D : MonoBehaviour
     private ARHumanBodyManager arHumanManager;
     private AngleCalculator angleCalculator;
     private PlaneFinder planeFinder;
+    [SerializeField]
+    private CountMessageItemUI countMessageItemUI;
 
     private ARPlane arPlane;
     //public GameObject arPlane;
-
-    [SerializeField]
-    Text text0;
-    [SerializeField]
-    Text text;
-    [SerializeField]
-    Text text2;
-    [SerializeField]
-    Text textPlane;
 
     [SerializeField]
     private GameObject jointPrefab;
@@ -161,8 +154,6 @@ public class BodyTracker3D : MonoBehaviour
 
     private void Update()
     {
-        text0.text = "풀업 스타트 : " + isPullUpStarted + "|||| 풀업 엔드 : " + isPullUpEnded;
-
         if (rightFoot != null && leftFoot != null && arPlane != null)
         {
             FeetLeaveGround();
@@ -343,8 +334,6 @@ public class BodyTracker3D : MonoBehaviour
 
             if(!canCount)
                 isPullUpEnded = false;
-
-            text2.text = "횟수 : " + count;
         }
         // 턱걸이가 종료된 부분 뒤틀린 방향 및 각도 출력
         else if(!isGround && reStart)
@@ -352,22 +341,16 @@ public class BodyTracker3D : MonoBehaviour
             reStart = false;
             isPullUpStarted = false;
 
-            string errorMessage = "턱걸이 " + count + "회 하셨습니다. ";
-
-            if (isRightDistortion)
+            if(countMessageItemUI != null)
             {
-                errorMessage += "\n오른쪽으로 " + rightDistortion + "도 만큼 기울었습니다.";
-                isRightDistortion = false;
-                rightDistortion = 0f;
-            }
-            if (isLeftDistortion)
-            {
-                errorMessage += "\n왼쪽으로 " + leftDistortion + "도 만큼 기울었습니다.";
-                isLeftDistortion = false;
-                leftDistortion = 0f;
+                //countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, isRightDistortion, isLeftDistortion);
+                countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, false, false);
             }
 
-            textPlane.text = errorMessage;
+            isRightDistortion = false;
+            rightDistortion = 0f;
+            isLeftDistortion = false;
+            leftDistortion = 0f;
             count = 0;
         }
     }
@@ -380,8 +363,6 @@ public class BodyTracker3D : MonoBehaviour
         float distanceLeftFoot = Mathf.Abs(leftFoot.position.y - arPlane.transform.position.y);
 
         bool value = distanceRightFoot > LeaveDistance && distanceLeftFoot > LeaveDistance;
-
-        text.text = "상태 : " + value;
 
         isGround = value;
     }

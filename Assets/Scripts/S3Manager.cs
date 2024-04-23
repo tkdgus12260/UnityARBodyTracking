@@ -12,12 +12,25 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using Amazon.S3.Transfer;
 using UnityEngine.Video;
+using Newtonsoft.Json;
+
+[System.Serializable]
+public class RankingData
+{
+    public string nickName;
+    public int count;
+    public string imageURL;
+}
 
 public class S3Manager : MonoBehaviour
 {
     private string folderPath;
     private string _bucketName = "kshs3test";
     private string _folderName = "UploadTest";
+    private string rankingFileName = "ranking.json";
+
+    [HideInInspector]
+    public string ImageURL = string.Empty;
 
     private void Awake()
     {
@@ -33,7 +46,20 @@ public class S3Manager : MonoBehaviour
         transferUtil = new TransferUtility(s3Client);
     }
 
-    public void PlayVideo()
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            RankingData newData = new RankingData();
+            newData.nickName = "김상현";
+            newData.count = 1;
+            newData.imageURL = "https://example.com/image.jpg";
+
+            UpdateRankingJson(newData);
+        }
+    }
+
+    public void RankingPhotoRegistration(string nickName)
     {
         //사진과 동영상들 중 선택 가능
         NativeGallery.GetMixedMediaFromGallery((media) => {
@@ -48,16 +74,12 @@ public class S3Manager : MonoBehaviour
                 }
                 else
                 {
-                    UploadFileAsync(s3Client, _bucketName + "/" + _folderName, selectedMedia.Name, selectedMedia.FullName);
+                    UploadFileAsync(s3Client, _bucketName + "/" + nickName, selectedMedia.Name, selectedMedia.FullName);
+                    ImageURL = $"https://kshs3test.s3.ap-northeast-2.amazonaws.com/{nickName}/" + selectedMedia.Name;
                 }
             }
         }, NativeGallery.MediaType.Image | NativeGallery.MediaType.Video);
 
-    }
-
-    public void DeleteButton()
-    {
-        DeleteObjectNonVersionedBucketAsync(s3Client, _bucketName, "sampleUserID/");
     }
 
     // 경로 내 파일 s3에 업로드.
@@ -90,6 +112,53 @@ public class S3Manager : MonoBehaviour
             Debug.Log($"Could not upload {objectName} to {bucketName}.");
             return;
         }
+    }
+
+    public async void UpdateRankingJson(RankingData newData)
+    {
+        string existingJson = await DownloadFileAsync(s3Client, _bucketName, rankingFileName);
+
+        List<RankingData> rankingList = JsonConvert.DeserializeObject<List<RankingData>>(existingJson);
+
+        rankingList.Add(newData);
+
+        string updatedJson = JsonConvert.SerializeObject(rankingList, Formatting.Indented);
+
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(updatedJson);
+        MemoryStream stream = new MemoryStream(bytes);
+        string filePath = $"{folderPath}/{rankingFileName}";
+        using (FileStream fileStream = File.Create(filePath))
+        {
+            await stream.CopyToAsync(fileStream);
+        }
+
+        UploadFileAsync(s3Client, _bucketName, rankingFileName, filePath);
+    }
+
+    public async Task<string> RankingJson()
+    {
+        return await DownloadFileAsync(s3Client, _bucketName, rankingFileName);
+    }
+
+    private async Task<string> DownloadFileAsync(IAmazonS3 client, string bucketName, string objectName)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = bucketName,
+            Key = objectName
+        };
+
+        using (var response = await client.GetObjectAsync(request))
+        using (var responseStream = response.ResponseStream)
+        using (var reader = new StreamReader(responseStream))
+        {
+            return await reader.ReadToEndAsync();
+        }
+    }
+
+    public void DeleteButton()
+    {
+        DeleteObjectNonVersionedBucketAsync(s3Client, _bucketName, "sampleUserID/");
     }
 
     // 파일 삭제

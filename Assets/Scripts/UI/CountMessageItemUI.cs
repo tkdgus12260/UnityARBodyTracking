@@ -8,21 +8,22 @@ public class CountMessageItemUI : MonoBehaviour
     private GameObject scrollViewContent;
     [SerializeField]
     private GameObject messageItemPrefab;
+    public GameObject nickNamePanel;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            InitializeMessageItem();
-        }
-    }
+    //private void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.K))
+    //    {
+    //        InitializeMessageItem(20, 0f, 0f, false, false);
+    //    }
+    //}
 
     // 새로운 messageitem 생성 및 업데이트 함수 실행
-    public void InitializeMessageItem()
+    public void InitializeMessageItem(int count, float rightDistortion, float leftDistortion, bool right, bool left)
     {
         GameObject newMessageItem = Instantiate(messageItemPrefab, scrollViewContent.transform);
 
         CountMessageItem countMessageItem = newMessageItem.GetComponent<CountMessageItem>();
-        countMessageItem.UpdateMessage("턱걸이 10회 하셨습니다.", false, false);
+        countMessageItem.UpdateMessage(count, rightDistortion, leftDistortion, right, left);
     }
 }

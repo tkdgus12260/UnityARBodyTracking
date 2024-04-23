@@ -22,6 +22,7 @@ public class Manager : MonoBehaviour
     }
 
     public LoadSceneManager SceneManager = null;
+    public S3Manager s3Manager = null;
 
     private void Awake()
     {
@@ -39,5 +40,6 @@ public class Manager : MonoBehaviour
     private void Start()
     {
         SceneManager = GetComponent<LoadSceneManager>();
+        s3Manager = GetComponent<S3Manager>();
     }
 }
