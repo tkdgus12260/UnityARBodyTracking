@@ -346,7 +346,7 @@ public class BodyTracker3D : MonoBehaviour
             reStart = false;
             isPullUpStarted = false;
 
-            if(countMessageItemUI != null)
+            if(countMessageItemUI != null && count > 0)
             {
                 //countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, isRightDistortion, isLeftDistortion);
                 countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, false, false);

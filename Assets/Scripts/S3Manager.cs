@@ -134,7 +134,7 @@ public class S3Manager : MonoBehaviour
         UploadFileAsync(s3Client, _bucketName, rankingFileName, filePath);
     }
 
-    public async Task<string> RankingJson()
+    public async Task<string> DownloadRankingJson()
     {
         return await DownloadFileAsync(s3Client, _bucketName, rankingFileName);
     }
