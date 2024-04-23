@@ -26,4 +26,12 @@ public class CountMessageItemUI : MonoBehaviour
         CountMessageItem countMessageItem = newMessageItem.GetComponent<CountMessageItem>();
         countMessageItem.UpdateMessage(count, rightDistortion, leftDistortion, right, left);
     }
+
+    public void SetXPosition(float value)
+    {
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        Vector3 newPosition = rectTransform.localPosition;
+        newPosition.x = value;
+        rectTransform.localPosition = newPosition;
+    }
 }

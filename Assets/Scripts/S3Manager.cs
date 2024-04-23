@@ -11,7 +11,6 @@ using System.IO;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using Amazon.S3.Transfer;
-using UnityEngine.Video;
 using Newtonsoft.Json;
 
 [System.Serializable]
