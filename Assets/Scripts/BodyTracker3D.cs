@@ -122,12 +122,12 @@ public class BodyTracker3D : MonoBehaviour
     [SerializeField]
     private Material planeMaterial;
 
-    public Transform leftShoulder;
-    public Transform rightShoulder;
-    public Transform spine;
-    public Transform rightFoot;
-    public Transform leftFoot;
-    public Transform rightForearm;
+    private Transform leftShoulder;
+    private Transform rightShoulder;
+    private Transform spine;
+    private Transform rightFoot;
+    private Transform leftFoot;
+    private Transform rightForearm;
 
     private Dictionary<int, GameObject> jointObjs = new Dictionary<int, GameObject>();
     private Dictionary<int, GameObject> lineObjs = new Dictionary<int, GameObject>();
@@ -143,6 +143,9 @@ public class BodyTracker3D : MonoBehaviour
     private bool isLeftDistortion = false;
     private float rightDistortion = 0f;
     private float leftDistortion = 0f;
+
+    // 카운트 가능 여부를 나타내는 변수
+    private bool canCount = true;
 
     private void Awake()
     {
@@ -185,7 +188,8 @@ public class BodyTracker3D : MonoBehaviour
             foreach (XRHumanBodyJoint joint in joints)
             {
                 // 조인트 인덱스가 1~22, 51~52, 63~66 범위 내에 있는 경우에만 처리.(어깨, 허리, 골반, 다리)
-                if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51 || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
+                if ((joint.index >= 1 && joint.index <= 22) || joint.index == 51
+                    || joint.index == 50 || (joint.index >= 63 && joint.index <= 66))
                 {
                     GameObject obj;
                     if (!jointObjs.TryGetValue(joint.index, out obj))
@@ -202,15 +206,12 @@ public class BodyTracker3D : MonoBehaviour
                                 break;
                             case 12:
                                 spine = obj.transform;
-                                obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
                             case 19:
                                 leftShoulder = obj.transform;
-                                obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
                             case 63:
                                 rightShoulder = obj.transform;
-                                obj.GetComponent<Renderer>().material.color = Color.red;
                                 break;
                             case 65:
                                 rightForearm = obj.transform;
@@ -223,7 +224,6 @@ public class BodyTracker3D : MonoBehaviour
                     if (joint.tracked)
                     {
                         obj.transform.parent = humanBody.transform;
-                        // estimatedHeightScaleFactor = 기본 body height가 정의되어 있는데, 키는 상대적이라 키를 예측해서 ScaleFactor를 저장한 값.
                         obj.transform.localPosition = joint.anchorPose.position * humanBody.estimatedHeightScaleFactor;
                         obj.transform.localRotation = joint.anchorPose.rotation;
                         obj.SetActive(true);
@@ -232,7 +232,6 @@ public class BodyTracker3D : MonoBehaviour
                         {
                             DrawLineBetweenJoints(parentObj.transform.position, obj.transform.position, joint.index);
                         }
-
                         BottomPlane();
                     }
                     else
@@ -285,9 +284,6 @@ public class BodyTracker3D : MonoBehaviour
         }
     }
 
-    // 카운트 가능 여부를 나타내는 변수
-    private bool canCount = true;
-
     // 턱걸이 카운트 쿨타임 코루틴
     private IEnumerator CountCooldown(float cooldownTime)
     {
@@ -338,8 +334,8 @@ public class BodyTracker3D : MonoBehaviour
 
             if(countMessageItemUI != null && count > 0)
             {
-                countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, isRightDistortion, isLeftDistortion);
-                //countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion, false, false);
+                countMessageItemUI.InitializeMessageItem(count, rightDistortion, leftDistortion,
+                                                            isRightDistortion, isLeftDistortion);
             }
 
             isRightDistortion = false;
